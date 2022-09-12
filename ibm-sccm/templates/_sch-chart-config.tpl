@@ -37,7 +37,7 @@ sch:
       allowPrivilegeEscalation: true
       capabilities:
         drop: [ "ALL" ]
-        add: [ "CHOWN" ]
+        add: [ "CHOWN", "SETGID", "SETUID", "DAC_OVERRIDE", "FOWNER" ]
 
     containerSecurityContext:
       privileged: false
@@ -46,6 +46,6 @@ sch:
       allowPrivilegeEscalation: true
       capabilities:
         drop: [ "ALL" ]
-        add: [ "CHOWN" ]
+        add: [ "CHOWN", "SETGID", "SETUID", "DAC_OVERRIDE", "FOWNER" ]
 {{- end -}}
 
