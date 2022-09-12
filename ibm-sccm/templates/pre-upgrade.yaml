@@ -1,0 +1,99 @@
+{{- include "sch.config.init" (list . "ibm-sccm.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list .) }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+{{ $saName := include "sch.names.fullCompName" (list . "serviceaccount") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{  $fullName  }}-preupgrade
+  labels:
+    app.kubernetes.io/name: {{  $appName  }}
+    app.kubernetes.io/instance: {{  .Release.Name  }}
+    app.kubernetes.io/managed-by: {{  .Release.Service  }}
+    helm.sh/chart: {{  include "ibm-sccm.chart" .  }}
+    release: {{  .Release.Name  }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+spec:
+  template:
+    metadata:
+      name: "{{.Release.Name}}"
+      labels:
+        app.kubernetes.io/name: {{  $appName  }}-preupgrade
+        app.kubernetes.io/instance: {{  .Release.Name  }}-preupgrade
+        app.kubernetes.io/managed-by: {{  .Release.Service  }}-preupgrade
+        helm.sh/chart: {{  include "ibm-sccm.chart" .  }}-preupgrade
+        release: {{  .Release.Name  }}-preupgrade
+      annotations:
+{{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering "" "" nil) | indent 8 }}
+
+    spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ $saName }}
+      {{- else }}
+      serviceAccountName: {{ .Values.serviceAccount.name | default "default" }}
+      {{- end }}
+      restartPolicy: Never
+      hostNetwork: false
+      hostPID: false
+      hostIPC: false
+      securityContext:
+{{ include "sch.security.securityContext" (list . .sch.chart.podSecurityContext) | indent 8 }}
+      affinity:
+{{- include "ibm-sccm.nodeAffinity" (list . .Values.affinity.nodeAffinity) | indent 8 }}
+{{- include "ibm-sccm.podAffinity" (list . .Values.affinity.podAffinity) | indent 8 }}
+{{- include "ibm-sccm.podAntiAffinity" (list . .Values.affinity.podAntiAffinity) | indent 8 }}
+      containers:
+        - name: pre-upgrade-job
+          {{- if .Values.image.digest.enabled }}
+          image: "{{  .Values.image.repository  }}@{{ .Values.image.digest.value }}"
+          {{- else }}
+          image: "{{  .Values.image.repository  }}:{{ .Values.image.tag  }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/app/maintenance.sh", "upgrade", {{  .Release.Name  }}-{{  $appName  }}]
+          env:
+            - name: FIRST_POD
+              value: {{  .Release.Name  }}-{{  $appName  }}-0
+          volumeMounts:
+            - mountPath: /app/CC/log/
+              name: cc-volume
+              subPathExpr: $(FIRST_POD)/logs
+            - mountPath: /app/CC/conf/
+              name: cc-volume
+              subPathExpr: $(FIRST_POD)/conf
+            - mountPath: /app/CC/conf-exported
+              name: cc-volume
+              subPathExpr: $(FIRST_POD)/conf-exported
+            - mountPath: /app/CC/web/ccbase
+              name: cc-volume
+              subPathExpr: $(FIRST_POD)/ccbase
+            - mountPath: /app/CC/user_inputs/
+              name: cc-volume-user-inputs
+              subPathExpr: user_inputs            
+            - mountPath: /app/backup
+              name: cc-volume
+          resources:
+            limits:
+{{ toYaml .Values.initResources.limits | indent 14 }}
+            requests:
+{{ toYaml .Values.initResources.requests | indent 14 }}
+          securityContext:
+{{ include "sch.security.securityContext" (list . .sch.chart.containerSecurityContext) | indent 12 }}
+      volumes:
+      - name: cc-volume
+        persistentVolumeClaim:
+          {{- if .Values.persistentVolumeCCM.claimName}}
+          claimName: {{ .Values.persistentVolumeCCM.claimName}}
+          {{- else }}
+          claimName: {{  $fullName  }}-pvc-ccm
+          {{- end }}
+      - name: cc-volume-user-inputs
+        persistentVolumeClaim:
+          {{- if .Values.persistentVolumeUserInputs.claimName}}
+          claimName: {{ .Values.persistentVolumeUserInputs.claimName}}
+          {{- else }}
+          claimName: {{  $fullName  }}-pvc-ui
+          {{- end }}

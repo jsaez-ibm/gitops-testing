@@ -1,0 +1,99 @@
+{{- include "sch.config.init" (list . "ibm-sccm.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list .) }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+{{ $saName := include "sch.names.fullCompName" (list . "serviceaccount") }}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ $fullName }}
+  annotations:
+        # This is what defines this resource as a hook. Without this line, the
+        # job is considered part of the release.
+        "helm.sh/hook": "pre-install, pre-upgrade, pre-rollback"
+        "helm.sh/hook-weight": "0"
+        "helm.sh/hook-delete-policy": "before-hook-creation"
+  labels:
+    app.kubernetes.io/name: {{ $appName }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "ibm-sccm.chart" . }}
+    release: {{ .Release.Name }}
+data:
+  # Configuration values can be set as key-value properties
+  scc_param_file: |
+    appUserUID={{ .Values.ccArgs.appUserUID }}
+    appUserGID={{ .Values.ccArgs.appUserGID }}
+    ccInterval={{ .Values.ccArgs.ccInterval }}
+    #Control center database information
+    productEntitilement={{ .Values.ccArgs.productEntitilement }}
+    dbType={{ .Values.ccArgs.dbType }}
+    dbHost={{ .Values.ccArgs.dbHost }}
+    dbPort={{ .Values.ccArgs.dbPort }}
+    dbUser={{ .Values.ccArgs.dbUser }}
+    dbName={{ .Values.ccArgs.dbName }}
+    dbLoc={{ .Values.ccArgs.dbLoc }}
+    dbInit={{ .Values.ccArgs.dbInit }}
+    dbPartition={{ .Values.ccArgs.dbPartition }}
+    dbDrivers={{ .Values.ccArgs.dbDrivers }}
+    mssqlGlobal={{ .Values.ccArgs.mssqlGlobal }}
+ 
+    #Port numbers of Control centers
+    httpPort={{ .Values.service.swingConsole.port }}
+    webHttpPort={{ .Values.service.webConsole.port }}
+    httpsPort={{ .Values.service.swingConsoleSecure.port }}
+    webHttpsPort={{ .Values.service.webConsoleSecure.port }}
+ 
+    weblistenAddress={{ .Values.ccArgs.weblistenAddress }}   
+    webHost={{ .Values.ccArgs.webHost }}
+    autoStopJavaWebAppServer={{ .Values.ccArgs.autoStopJavaWebAppServer }}
+    eventRepositoryAuth={{ .Values.ccArgs.eventRepositoryAuth }}
+    
+    #Email related details
+    emailHostname={{ .Values.ccArgs.emailHostname }}
+    emailPort={{ .Values.ccArgs.emailPort }}
+    emailUser={{ .Values.ccArgs.emailUser }}
+    emailRespond={{ .Values.ccArgs.emailRespond }}
+    ccAdminEmailAddress={{ .Values.ccArgs.ccAdminEmailAddress }}
+    
+    oracleRacOrScan={{ .Values.ccArgs.oracleRacOrScan }}
+    
+    #JMS related details
+    jmsEnable={{ .Values.ccArgs.jmsEnable }}
+    jmsType={{ .Values.ccArgs.jmsType }}
+    jmsHost={{ .Values.ccArgs.jmsHost }}
+    jmsPort={{ .Values.ccArgs.jmsPort }}
+    jmsQueueManager={{ .Values.ccArgs.jmsQueueManager }}
+    jmsChannel={{ .Values.ccArgs.jmsChannel }}
+    jmsSubject={{ .Values.ccArgs.jmsSubject }}
+    jmsTopic={{ .Values.ccArgs.jmsTopic }}
+    jmsEmbedBroker={{ .Values.ccArgs.jmsEmbedBroker }}
+    jmsDataDirectory={{ .Values.ccArgs.jmsDataDirectory }}
+    jmsTimeToLive={{ .Values.ccArgs.jmsTimeToLive }}
+    jmsRetries={{ .Values.ccArgs.jmsRetries }}
+    jmsRetryWait={{ .Values.ccArgs.jmsRetryWait }}
+    jmsBrokerName={{ .Values.ccArgs.jmsBrokerName }}
+    
+    #Secure parameters
+    dbSSL={{ .Values.ccArgs.dbSSL }}
+    
+    #JRE certificate details    
+    {{- if .Values.secret.certsSecretName }}
+    keyStore=/app/certs_secret_files/keystore
+    trustStore=/app/certs_secret_files/truststore
+    {{- else }}
+    keyStore={{ .Values.ccArgs.keyStore }}
+    trustStore={{ .Values.ccArgs.trustStore }}
+    {{- end }}
+    keyAlias={{ .Values.ccArgs.keyAlias }}
+    adminEmailAddress={{ .Values.ccArgs.adminEmailAddress }}    
+
+    #seas parameters
+    packagePath={{ .Values.ccArgs.packagePath }}
+    seasPrimaryAddress={{ .Values.ccArgs.seasPrimaryAddress }}
+    seasPrimaryPort={{ .Values.ccArgs.seasPrimaryPort }}
+    seasAlternativeAddress={{ .Values.ccArgs.seasAlternativeAddress }}
+    seasAlternativePort={{ .Values.ccArgs.seasAlternativePort }}
+    seasSecureConnection={{ .Values.ccArgs.seasSecureConnection }}
+    seasProfileName={{ .Values.ccArgs.seasProfileName }}
+    seasPersistentConnection={{ .Values.ccArgs.seasPersistentConnection }}
+    seasSecureProtocol={{ .Values.ccArgs.seasSecureProtocol }}    

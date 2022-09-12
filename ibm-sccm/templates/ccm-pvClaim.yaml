@@ -1,0 +1,38 @@
+{{- if and .Values.persistentVolumeCCM.enabled  (not .Values.persistentVolumeCCM.claimName) -}}
+{{- include "sch.config.init" (list . "ibm-sccm.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list .) }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+
+# Sample for creating a volume claim.
+# It will be used while creating the container.
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{  $fullName  }}-pvc-ccm
+  labels:
+    app.kubernetes.io/name: {{ $appName }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "ibm-sccm.chart" . }}
+    release: {{ .Release.Name }}
+spec:
+  {{- if .Values.persistentVolumeCCM.useDynamicProvisioning }}
+  # If present, use the storageClassName from the values.yaml, else use the
+  # manual storage class
+  storageClassName: {{ default nil .Values.persistentVolumeCCM.storageClassName | quote  }}
+  {{- else }}
+  # Disable dynamic provisioning
+  storageClassName: {{ default "" .Values.persistentVolumeCCM.storageClassName | quote }}
+  {{- end }}
+  accessModes:
+    - {{  .Values.persistentVolumeCCM.accessMode  }}
+  resources:
+    requests:
+      storage: {{  .Values.persistentVolumeCCM.size | quote  }}
+  {{- if and .Values.persistentVolumeCCM.selector.label }}
+  selector: 
+    matchLabels:
+      {{ .Values.persistentVolumeCCM.selector.label }}: {{  .Values.persistentVolumeCCM.selector.value  }}
+  {{- end }}
+{{- end }}

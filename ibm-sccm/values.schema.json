@@ -1,0 +1,1673 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "IBM Certified Container Software for SCCM JSON schema",
+    "description": "IBM Certified Container Software for SCCM JSON schema.",
+    "default": {},
+    "required": [
+        "replicaCount",
+        "image",
+        "service",
+        "ccArgs",        
+        "initResources",
+        "affinity",
+        "persistentVolumeCCM",
+        "persistentVolumeUserInputs",
+        "livenessProbe",
+        "readinessProbe",
+        "secret",
+        "dashboard",
+        "route",
+        "autoscaling",
+        "arch",
+        "license",
+        "licenseType"
+    ],
+    "properties": {
+        "replicaCount": {
+            "$id": "#/properties/replicaCount",
+            "type": "integer",
+            "title": "The replicaCount",
+            "description": "Number of deployment replicas.",
+            "default": 1,
+            "examples": [
+                1,
+				        2
+            ]
+        },
+        "image": {
+            "$id": "#/properties/image",
+            "type": "object",
+            "title": "Container Image Configuration",            
+            "default": {},
+            "required": [
+                "repository",
+                "tag",                
+                "digest",
+                "pullPolicy"
+            ],
+            "properties": {
+                "repository": {
+                    "$id": "#/properties/image/properties/repository",
+                    "type": "string",
+                    "title": "Image Repository",
+                    "description": "Specify the container image registry with image name.",
+                    "default": "cp.icr.io/cp/ibm-scc/ibmscc",
+                    "examples": [
+                        "cp.icr.io/cp/ibm-scc/ibmscc"
+                    ]
+                },
+                "tag": {
+                    "$id": "#/properties/image/properties/tag",
+                    "type": "string",
+                    "title": "Image Tag",
+                    "description": "Specify a valid image tag present on registry.",
+                    "default": "6.2.1.0_ifix07",
+                    "examples": [
+                        "6.2.1.0_ifix07"
+                    ]
+                },
+                "imageSecrets": {
+                    "$id": "#/properties/image/properties/imageSecrets",
+                    "type": [ "string", "null" ],
+                    "title": "Image Secrets",
+                    "description": "Specify the secret to use when pulling the image. Please provide this when using an image from a private registry",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "digest": {
+                    "$id": "#/properties/image/properties/digest",
+                    "type": "object",
+                    "title": "Image Digest Details",
+                    "default": {},
+                    "examples": [
+                        {
+                            "enabled": true,
+                            "value": "sha256:303007cda187087536f2d2be0238259fd31753c44c2b0d4f8b5f0c4cabd20bd5"
+                        }
+                    ],
+                    "required": [
+                        "enabled",
+                        "value"
+                    ],
+                    "properties": {
+                        "enabled": {
+                            "$id": "#/properties/image/properties/digest/properties/enabled",
+                            "type": "boolean",
+                            "title": "Digest Enablement",
+                            "description": "Enable/disable digest to be used for image pull from registry.",
+                            "default": true,
+                            "examples": [
+                                true,
+								                false
+                            ]
+                        },
+                        "value": {
+                            "$id": "#/properties/image/properties/digest/properties/value",
+                            "type": "string",
+                            "title": "Image Digest Value",
+                            "description": "Specify image digest values to be used for image pull during deployment.",
+                            "default": "sha256:303007cda187087536f2d2be0238259fd31753c44c2b0d4f8b5f0c4cabd20bd5",
+                            "examples": [
+                                "sha256:303007cda187087536f2d2be0238259fd31753c44c2b0d4f8b5f0c4cabd20bd5"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "pullPolicy": {
+                    "$id": "#/properties/image/properties/pullPolicy",
+                    "type": "string",
+                    "title": "Image Pull Policy",
+                    "description": "Specify the image pull policy for containers.",
+                    "default": "IfNotPresent",
+                    "examples": [
+                        "IfNotPresent"
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "nameOverride": {
+            "$id": "#/properties/nameOverride",
+            "type": [ "string", "null" ],
+            "title": "Name Override",
+            "description": "This name will be appended to release name to form the name of the resources created by this chart.",
+            "default": "",
+            "examples": [
+                ""
+            ]
+        },
+        "fullnameOverride": {
+            "$id": "#/properties/fullnameOverride",
+            "type": [ "string", "null" ],
+            "title": "Fullname Override",
+            "default": "",
+            "examples": [
+                ""
+            ]
+        },
+        "serviceAccount": {
+            "$id": "#/properties/serviceAccount",
+            "type": "object",
+            "title": "Service Account Configuration",
+            "default": {},
+            "required": [
+                "create"                
+            ],
+            "properties": {
+                "create": {
+                    "$id": "#/properties/serviceAccount/properties/create",
+                    "type": "boolean",
+                    "title": "Service Account Create",
+                    "description": "Specify true/false to create or not create a service account.",
+                    "default": true,
+                    "examples": [
+                        true,
+						false
+                    ]
+                },
+                "name": {
+                    "$id": "#/properties/serviceAccount/properties/name",
+                    "type": [ "string", "null" ],
+                    "title": "Service Account Name",
+                    "description": "Specify service account name if existing service account is to be use for this deployment.",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "service": {
+            "$id": "#/properties/service",
+            "type": "object",
+            "title": "Service Configuration",
+            "default": {},
+            "required": [
+                "type",
+                "externalTrafficPolicy",
+                "swingConsole",
+                "webConsole",
+                "swingConsoleSecure",
+                "webConsoleSecure"                
+            ],
+            "properties": {
+                "type": {
+                    "$id": "#/properties/service/properties/type",
+                    "type": "string",
+                    "title": "Service Type Exposing Ports",
+                    "default": "LoadBalancer",
+                    "examples": [
+                        "LoadBalancer"
+                    ]
+                },
+                "loadBalancerIP": {
+                    "$id": "#/properties/service/properties/loadBalancerIP",
+                    "type": [ "string", "null" ],
+                    "title": "For passing load balancer IP",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+				
+                "loadBalancerSourceRanges": {
+                    "$id": "#/properties/service/properties/loadBalancerSourceRanges",
+                    "type": "array",
+                    "title": "LoadBalancer IP ranges for Service",
+                    "description": "Specify the LoadBalancer IP ranges to access the Control Center application.",
+                    "default": "",
+                    "items": {
+                      "type": "string"
+                     },
+                    "additionalItems": { "type": "string" }
+                },
+                "externalTrafficPolicy": {
+                    "$id": "#/properties/service/properties/externalTrafficPolicy",
+                    "type": "string",
+                    "title": "For passing external Traffic Policy",
+                    "default": "Local",
+                    "examples": [
+                        "Local"
+                    ]
+                },
+                "sessionAffinity": {
+                    "$id": "#/properties/service/properties/sessionAffinity",
+                    "type": "string",
+                    "title": "For giving session Affinity",
+                    "default": "",
+                    "examples": [
+                        "ClientIP"
+                    ]
+                },
+                "swingConsole": {
+                    "$id": "#/properties/service/properties/swingConsole",
+                    "type": "object",
+                    "title": "Swing Console",
+                    "default": {},
+                    "examples": [
+                        {
+                            "name": "swing-console",
+                            "port": 58080,
+                            "protocol": "TCP"
+                        }
+                    ],
+                    "required": [
+                        "name",
+                        "port",
+                        "protocol"
+                    ],
+                    "properties": {
+                        "name": {
+                            "$id": "#/properties/service/properties/swingConsole/properties/name",
+                            "type": "string",
+                            "title": "Swing Console Name",
+                            "default": "swing-console",
+                            "examples": [
+                                "swing-console"
+                            ]
+                        },
+                        "port": {
+                            "$id": "#/properties/service/properties/swingConsole/properties/port",
+                            "type": "integer",
+                            "title": "Swing Console port number",
+                            "default": 58080,
+                            "examples": [
+                                58080
+                            ]
+                        },
+                        "protocol": {
+                            "$id": "#/properties/service/properties/swingConsole/properties/protocol",
+                            "type": "string",
+                            "title": "Swing Console Protocol for service",
+                            "default": "TCP",
+                            "examples": [
+                                "TCP"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "webConsole": {
+                    "$id": "#/properties/service/properties/webConsole",
+                    "type": "object",
+                    "title": "Web Console",
+                    "default": {},
+                    "required": [
+                        "name",
+                        "port",
+                        "protocol"
+                    ],
+                    "properties": {
+                        "name": {
+                            "$id": "#/properties/service/properties/webConsole/properties/name",
+                            "type": "string",
+                            "title": "Web Console Name",
+                            "default": "web-console",
+                            "examples": [
+                                "web-console"
+                            ]
+                        },
+                        "port": {
+                            "$id": "#/properties/service/properties/webConsole/properties/port",
+                            "type": "integer",
+                            "title": "Web Console Port Number",
+                            "default": 58082,
+                            "examples": [
+                                58082
+                            ]
+                        },
+                        "protocol": {
+                            "$id": "#/properties/service/properties/webConsole/properties/protocol",
+                            "type": "string",
+                            "title": "Web Console Protocol For Service",
+                            "default": "TCP",
+                            "examples": [
+                                "TCP"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "swingConsoleSecure": {
+                    "$id": "#/properties/service/properties/swingConsoleSecure",
+                    "type": "object",
+                    "title": "Secure Swing Console",
+                    "default": {},
+                    "required": [
+                        "name",
+                        "port",
+                        "protocol"
+                    ],
+                    "properties": {
+                        "name": {
+                            "$id": "#/properties/service/properties/swingConsoleSecure/properties/name",
+                            "type": "string",
+                            "title": "Swing Console Name",
+                            "default": "swing-console-secure",
+                            "examples": [
+                                "swing-console-secure"
+                            ]
+                        },
+                        "port": {
+                            "$id": "#/properties/service/properties/swingConsoleSecure/properties/port",
+                            "type": "integer",
+                            "title": "Secure Swing Console Port",
+                            "default": 58081,
+                            "examples": [
+                                58081
+                            ]
+                        },
+                        "protocol": {
+                            "$id": "#/properties/service/properties/swingConsoleSecure/properties/protocol",
+                            "type": "string",
+                            "title": "Secure Console Protocol For Service",
+                            "default": "TCP",
+                            "examples": [
+                                "TCP"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "webConsoleSecure": {
+                    "$id": "#/properties/service/properties/webConsoleSecure",
+                    "type": "object",
+                    "title": "Secure Web Console",
+                    "default": {},
+                    "required": [
+                        "name",
+                        "port",
+                        "protocol"
+                    ],
+                    "properties": {
+                        "name": {
+                            "$id": "#/properties/service/properties/webConsoleSecure/properties/name",
+                            "type": "string",
+                            "title": "Secure Web Console Name",
+                            "default": "web-console-secure",
+                            "examples": [
+                                "web-console-secure"
+                            ]
+                        },
+                        "port": {
+                            "$id": "#/properties/service/properties/webConsoleSecure/properties/port",
+                            "type": "integer",
+                            "title": "Secure Web Console Port",
+                            "default": 58083,
+                            "examples": [
+                                58083
+                            ]
+                        },
+                        "protocol": {
+                            "$id": "#/properties/service/properties/webConsoleSecure/properties/protocol",
+                            "type": "string",
+                            "title": "Secure Web Protocol For Service",
+                            "default": "TCP",
+                            "examples": [
+                                "TCP"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+				"annotations": {
+                    "$id": "#/properties/service/properties/annotations",
+                    "type": "object",
+                    "title": "Service Annotations",
+                    "description": "Specify the Service annotations if needed.",
+                    "default": {},
+                    "additionalProperties": true
+                },
+                "externalIP": {
+                    "$id": "#/properties/service/properties/externalIP",
+                    "type": "string",
+                    "title": "ExternalIP For Service",
+                    "description": "Specify the External IP to access for SCCM.",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "ccArgs": {
+            "$id": "#/properties/ccArgs",
+            "type": "object",
+            "title": "Configurable Parameters Of The IBM Control Center Monitor Chart",
+            "default": {},
+            "required": [
+                "appUserUID",
+                "appUserGID",
+                "ccInterval",
+                "nprocLimit",
+                "nofileLimit",
+				"DEBUG_SCRIPT",
+                "productEntitilement",
+                "dbType",
+                "dbHost",
+                "dbPort",
+                "dbUser",
+                "dbName",
+                "dbLoc",
+                "dbInit",
+                "dbPartition",
+                "dbDrivers",
+                "mssqlGlobal",                
+                "autoStopJavaWebAppServer",
+                "eventRepositoryAuth",
+                "emailHostname",
+                "emailPort",
+                "emailUser",
+                "emailRespond",
+                "ccAdminEmailAddress",           
+                "keyStore",
+                "trustStore",
+                "keyAlias",
+                "adminEmailAddress",
+                "packagePath",                
+                "seasPrimaryPort",            
+                "seasSecureConnection",
+                "seasProfileName",
+                "seasPersistentConnection"                
+            ],
+            "properties": {
+                "appUserUID": {
+                    "$id": "#/properties/ccArgs/properties/appUserUID",
+                    "type": "string",
+                    "title": "UID For Continer User",
+                    "default": "1010",
+                    "examples": [
+                        "1010"
+                    ]
+                },
+                "appUserGID": {
+                    "$id": "#/properties/ccArgs/properties/appUserGID",
+                    "type": "string",
+                    "title": "GID For Continer User",
+                    "default": "1010",
+                    "examples": [
+                        "1010"
+                    ]
+                },
+                "ccInterval": {
+                    "$id": "#/properties/ccArgs/properties/ccInterval",
+                    "type": "string",
+                    "title": "Time To Wait Come Back Up In Case Of Application Down",
+                    "default": "2h",
+                    "examples": [
+                        "2h"
+                    ]
+                },
+                "nprocLimit": {
+                    "$id": "#/properties/ccArgs/properties/nprocLimit",
+                    "type": "string",
+                    "title": "nprocLimit",
+                    "default": "1048576",
+                    "examples": [
+                        "1048576"
+                    ]
+                },
+                "nofileLimit": {
+                    "$id": "#/properties/ccArgs/properties/nofileLimit",
+                    "type": "string",
+                    "title": "nofileLimit",
+                    "default": "1048576",
+                    "examples": [
+                        "1048576"
+                    ]
+                },
+				"DEBUG_SCRIPT": {
+                    "$id": "#/properties/ccArgs/properties/DEBUG_SCRIPT",
+                    "type": "string",
+                    "title": "DEBUG_SCRIPT",
+                    "default": "false",
+                    "examples": [
+                        "false"
+                    ]
+                },
+                "productEntitilement": {
+                    "$id": "#/properties/ccArgs/properties/productEntitilement",
+                    "type": "string",
+                    "title": "Product To BE Installed",
+                    "default": "CCD,CCM",
+                    "examples": [
+                        "CCD,CCM"
+                    ]
+                },
+                "dbType": {
+                    "$id": "#/properties/ccArgs/properties/dbType",
+                    "type": "string",
+                    "title": "ENTER DB TYPE",
+                    "default": "MSSQL",
+                    "examples": [
+                        "MSSQL"
+                    ]
+                },
+                "dbHost": {
+                    "$id": "#/properties/ccArgs/properties/dbHost",
+                    "type": "string",
+                    "title": "DB Host",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "dbPort": {
+                    "$id": "#/properties/ccArgs/properties/dbPort",
+                    "type": "string",
+                    "title": "DB Port",
+                    "default": "1433",
+                    "examples": [
+                        "1433"
+                    ]
+                },
+                "dbUser": {
+                    "$id": "#/properties/ccArgs/properties/dbUser",
+                    "type": "string",
+                    "title": "DB USER",
+                    "default": "ibm",
+                    "examples": [
+                        "ibm"
+                    ]
+                },
+                "dbName": {
+                    "$id": "#/properties/ccArgs/properties/dbName",
+                    "type": "string",
+                    "title": "DB NAME",
+                    "default": "CC_HELM",
+                    "examples": [
+                        "CC_HELM"
+                    ]
+                },
+                "dbLoc": {
+                    "$id": "#/properties/ccArgs/properties/dbLoc",
+                    "type": "string",
+                    "title": "Database Localization",
+                    "default": "none",
+                    "examples": [
+                        "none"
+                    ]
+                },
+                "dbInit": {
+                    "$id": "#/properties/ccArgs/properties/dbInit",
+                    "type": "string",
+                    "title": "Database Initialization Flag",
+                    "default": "true",
+                    "examples": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "dbPartition": {
+                    "$id": "#/properties/ccArgs/properties/dbPartition",
+                    "type": "string",
+                    "title": "Database Partitioning Flag",
+                    "default": "false",
+                    "examples": [
+                        "false"
+                    ]
+                },
+                "dbDrivers": {
+                    "$id": "#/properties/ccArgs/properties/dbDrivers",
+                    "type": "string",
+                    "title": "Database Drivers",
+                    "default": "/app/CC/user_inputs/mssql-jdbc-7.4.1.jre8.jar",
+                    "examples": [
+                        "/app/CC/user_inputs/mssql-jdbc-7.4.1.jre8.jar"
+                    ]
+                },
+                "mssqlGlobal": {
+                    "$id": "#/properties/ccArgs/properties/mssqlGlobal",
+                    "type": "string",
+                    "title": "MssqlGlobal Database Globalization Flag",
+                    "default": "false",
+                    "examples": [
+                        "false",
+                        "true"
+                    ]
+                },
+                "weblistenAddress": {
+                    "$id": "#/properties/ccArgs/properties/weblistenAddress",
+                    "type": [ "string", "null" ],
+                    "title": "Web Listen Address",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "webHost": {
+                    "$id": "#/properties/ccArgs/properties/webHost",
+                    "type": [ "string", "null" ],
+                    "title": "Web Hostname",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "autoStopJavaWebAppServer": {
+                    "$id": "#/properties/ccArgs/properties/autoStopJavaWebAppServer",
+                    "type": "string",
+                    "title": "Auto stop Java Web Server",
+                    "default": "true",
+                    "examples": [
+                        "true"
+                    ]
+                },
+                "eventRepositoryAuth": {
+                    "$id": "#/properties/ccArgs/properties/eventRepositoryAuth",
+                    "type": "string",
+                    "title": "Event Repository Autentication",
+                    "default": "false",
+                    "examples": [
+                        "false"
+                    ]
+                },
+                "emailHostname": {
+                    "$id": "#/properties/ccArgs/properties/emailHostname",
+                    "type": "string",
+                    "title": "Email Hostname",
+                    "default": "localhost",
+                    "examples": [
+                        "localhost"
+                    ]
+                },
+                "emailPort": {
+                    "$id": "#/properties/ccArgs/properties/emailPort",
+                    "type": "string",
+                    "title": "Email Port",
+                    "default": "25",
+                    "examples": [
+                        "25"
+                    ]
+                },
+                "emailUser": {
+                    "$id": "#/properties/ccArgs/properties/emailUser",
+                    "type": "string",
+                    "title": "Email Username",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "emailRespond": {
+                    "$id": "#/properties/ccArgs/properties/emailRespond",
+                    "type": "string",
+                    "title": "Responding Email Address",
+                    "default": "noone@anywhere",
+                    "examples": [
+                        "noone@anywhere"
+                    ]
+                },
+                "ccAdminEmailAddress": {
+                    "$id": "#/properties/ccArgs/properties/ccAdminEmailAddress",
+                    "type": "string",
+                    "title": "Admin Email Address",
+                    "default": "noone@anywhere",
+                    "examples": [
+                        "noone@anywhere"
+                    ]
+                },
+                "oracleRacOrScan": {
+                    "$id": "#/properties/ccArgs/properties/oracleRacOrScan",
+                    "type": [ "string", "null" ],
+                    "title": "Oracle is Single Client Access Name or not",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsEnable": {
+                    "$id": "#/properties/ccArgs/properties/jmsEnable",
+                    "type": [ "string", "null" ],
+                    "title": "JMS Enables Or Not",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsType": {
+                    "$id": "#/properties/ccArgs/properties/jmsType",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Type",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsHost": {
+                    "$id": "#/properties/ccArgs/properties/jmsHost",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Host",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsPort": {
+                    "$id": "#/properties/ccArgs/properties/jmsPort",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Port",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsQueueManager": {
+                    "$id": "#/properties/ccArgs/properties/jmsQueueManager",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Queue Manager",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsChannel": {
+                    "$id": "#/properties/ccArgs/properties/jmsChannel",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Channel Name",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsSubject": {
+                    "$id": "#/properties/ccArgs/properties/jmsSubject",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Subject",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsTopic": {
+                    "$id": "#/properties/ccArgs/properties/jmsTopic",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Topic",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsEmbedBroker": {
+                    "$id": "#/properties/ccArgs/properties/jmsEmbedBroker",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Embed Broker",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsDataDirectory": {
+                    "$id": "#/properties/ccArgs/properties/jmsDataDirectory",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Data Directory",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsTimeToLive": {
+                    "$id": "#/properties/ccArgs/properties/jmsTimeToLive",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Time To Live",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsRetries": {
+                    "$id": "#/properties/ccArgs/properties/jmsRetries",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Retries",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsRetryWait": {
+                    "$id": "#/properties/ccArgs/properties/jmsRetryWait",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Retry Wait",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "jmsBrokerName": {
+                    "$id": "#/properties/ccArgs/properties/jmsBrokerName",
+                    "type": [ "string", "null" ],
+                    "title": "Jms Broker Name",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "dbSSL": {
+                    "$id": "#/properties/ccArgs/properties/dbSSL",
+                    "type": [ "string", "null" ],
+                    "title": "Database SSL Enabled",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "keyStore": {
+                    "$id": "#/properties/ccArgs/properties/keyStore",
+                    "type": "string",
+                    "title": "keyStore File Path",
+                    "default": "/app/CC/user_inputs/CCenter.keystore",
+                    "examples": [
+                        "/app/CC/user_inputs/CCenter.keystore"
+                    ]
+                },
+                "trustStore": {
+                    "$id": "#/properties/ccArgs/properties/trustStore",
+                    "type": "string",
+                    "title": "TrustStore File Path",
+                    "default": "/app/CC/user_inputs/CCenter.truststore",
+                    "examples": [
+                        "/app/CC/user_inputs/CCenter.truststore"
+                    ]
+                },
+                "keyAlias": {
+                    "$id": "#/properties/ccArgs/properties/keyAlias",
+                    "type": "string",
+                    "title": "key Alias Name",
+                    "default": "ccalias120",
+                    "examples": [
+                        "ccalias120"
+                    ]
+                },
+                "adminEmailAddress": {
+                    "$id": "#/properties/ccArgs/properties/adminEmailAddress",
+                    "type": "string",
+                    "title": "Admin Email Address",
+                    "default": "admin@test.com",
+                    "examples": [
+                        "admin@test.com"
+                    ]
+                },
+                "packagePath": {
+                    "$id": "#/properties/ccArgs/properties/packagePath",
+                    "type": "string",
+                    "title": "Package Path",
+                    "default": "../packages",
+                    "examples": [
+                        "../packages"
+                    ]
+                },
+                "seasPrimaryAddress": {
+                    "$id": "#/properties/ccArgs/properties/seasPrimaryAddress",
+                    "type": [ "string", "null" ],
+                    "title": "SEAS Primary Address",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "seasPrimaryPort": {
+                    "$id": "#/properties/ccArgs/properties/seasPrimaryPort",
+                    "type": [ "string", "null" ],
+                    "title": "SEAS Primary Port",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "seasAlternativeAddress": {
+                    "$id": "#/properties/ccArgs/properties/seasAlternativeAddress",
+                    "type": [ "string", "null" ],
+                    "title": "Seas Alternative Address",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "seasAlternativePort": {
+                    "$id": "#/properties/ccArgs/properties/seasAlternativePort",
+                    "type": [ "string", "null" ],
+                    "title": "Seas Alternative Port",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "seasSecureConnection": {
+                    "$id": "#/properties/ccArgs/properties/seasSecureConnection",
+                    "type": "string",
+                    "title": "Seas Secure Connection",
+                    "default": "N",
+                    "examples": [
+                        "N",
+						"Y"
+                    ]
+                },
+                "seasProfileName": {
+                    "$id": "#/properties/ccArgs/properties/seasProfileName",
+                    "type": "string",
+                    "title": "Seas Profile Name",
+                    "default": "test",
+                    "examples": [
+                        "test"
+                    ]
+                },
+                "seasPersistentConnection": {
+                    "$id": "#/properties/ccArgs/properties/seasPersistentConnection",
+                    "type": "string",
+                    "title": "Seas Persistent Connection",
+                    "default": "N",
+                    "examples": [
+                        "N",
+						"Y"
+                    ]
+                },
+                "seasSecureProtocol": {
+                    "$id": "#/properties/ccArgs/properties/seasSecureProtocol",
+                    "type": [ "string", "null" ],
+                    "title": "Seas Secure Protocol",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "resources": {
+            "$id": "#/properties/resources",
+            "type": "object",
+            "title": "Resource Configuration",
+            "default": {},
+            "properties": {
+                "limits": {
+                    "$id": "#/properties/resources/properties/limits",
+                    "type": "object",
+                    "title": "Resource Limits",
+                    "properties": {
+                        "cpu": {
+                            "$id": "#/properties/resources/properties/limits/properties/cpu",
+                            "type": "string",
+                            "title": "CPU Limit",
+                            "default": "3000m",
+                            "examples": [
+                                "3000m"
+                            ]
+                        },
+                        "memory": {
+                            "$id": "#/properties/resources/properties/limits/properties/memory",
+                            "type": "string",
+                            "title": "Memory Limit",
+                            "default": "8Gi",
+                            "examples": [
+                                "8Gi"
+                            ]
+                        },
+						"ephemeral-storage": {
+                            "$id": "#/properties/resources/properties/requests/properties/ephemeral-storage",
+                            "type": "string",
+                            "title": "Ephemeral Storage Limit",
+                            "default": "4Gi",
+                            "examples": [
+                                "4Gi"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "requests": {
+                    "$id": "#/properties/resources/properties/requests",
+                    "type": "object",
+                    "title": "Resource Requests",
+                    "properties": {
+                        "cpu": {
+                            "$id": "#/properties/resources/properties/requests/properties/cpu",
+                            "type": "string",
+                            "title": "CPU Request",
+                            "default": "1500m",
+                            "examples": [
+                                "1500m"
+                            ]
+                        },
+                        "memory": {
+                            "$id": "#/properties/resources/properties/requests/properties/memory",
+                            "type": "string",
+                            "title": "Memory Requests",
+                            "default": "4Gi",
+                            "examples": [
+                                "4Gi"
+                            ]
+                        },
+						"ephemeral-storage": {
+                            "$id": "#/properties/resources/properties/requests/properties/ephemeral-storage",
+                            "type": "string",
+                            "title": "Ephemeral Storage Requests",
+                            "default": "2Gi",
+                            "examples": [
+                                "2Gi"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "initResources": {
+            "$id": "#/properties/initResources",
+            "type": "object",
+            "title": "Init Resource Configuration",
+            "properties": {
+                "limits": {
+                    "$id": "#/properties/initResources/properties/limits",
+                    "type": "object",
+                    "title": "Resource Limits",
+                    "properties": {
+                        "cpu": {
+                            "$id": "#/properties/initResources/properties/limits/properties/cpu",
+                            "type": "string",
+                            "title": "CPU Limit",
+                            "default": "500m",
+                            "examples": [
+                                "500m"
+                            ]
+                        },
+                        "memory": {
+                            "$id": "#/properties/initResources/properties/limits/properties/memory",
+                            "type": "string",
+                            "title": "Memory Limit",
+                            "default": "2Gi",
+                            "examples": [
+                                "2Gi"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "requests": {
+                    "$id": "#/properties/initResources/properties/requests",
+                    "type": "object",
+                    "title": "Init Resource Request",
+                    "properties": {
+                        "cpu": {
+                            "$id": "#/properties/initResources/properties/requests/properties/cpu",
+                            "type": "string",
+                            "title": "CPU Request",
+                            "default": "250m",
+                            "examples": [
+                                "250m"
+                            ]
+                        },
+                        "memory": {
+                            "$id": "#/properties/initResources/properties/requests/properties/memory",
+                            "type": "string",
+                            "title": "Memory Request",
+                            "default": "1Gi",
+                            "examples": [
+                                "1Gi"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+		"affinity": {
+            "$id": "#/properties/affinity",
+            "type": "object",
+            "title": "Affinity Configuration",
+            "default": {},
+            "required": [
+                "nodeAffinity"
+            ],
+            "properties": {
+                "nodeAffinity": {
+                    "$id": "#/properties/affinity/properties/nodeAffinity",
+                    "type": "object",
+                    "title": "Node Affinity",
+                    "default": {},
+                    "required": [
+                        "requiredDuringSchedulingIgnoredDuringExecution",
+                        "preferredDuringSchedulingIgnoredDuringExecution"
+                    ],
+                    "properties": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/nodeAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution",
+                            "type": "array",
+                            "title": "Node Affinity RequiredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution",
+                            "default": [],
+                            "additionalItems": true,
+                            "items": {
+                                "$id": "#/properties/affinity/properties/nodeAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution/items",
+								"type": "object",
+				                "additionalItems": true
+                            }
+                        },
+                        "preferredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/nodeAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution",
+                            "type": "array",
+                            "title": "Node Affinity PreferredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution",
+                            "default": [],
+                            "additionalItems": true,
+                            "items": {
+                                "$id": "#/properties/affinity/properties/nodeAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution/items",
+								                "type": "object",
+				                        "additionalItems": true
+                            }
+                        }
+                    }
+                },
+                "podAffinity": {
+                    "$id": "#/properties/affinity/properties/podAffinity",
+                    "type": "object",
+                    "title": "Pod Affinity",
+                    "default": {},
+                    "required": [
+                        "requiredDuringSchedulingIgnoredDuringExecution",
+                        "preferredDuringSchedulingIgnoredDuringExecution"
+                    ],
+                    "properties": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/podAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution",
+                            "type": "array",
+                            "title": "Pod Affinity RequiredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.podAffinity.requiredDuringSchedulingIgnoredDuringExecution",
+                            "default": [],
+                            "additionalItems": true,
+                            "items": {
+                                "$id": "#/properties/affinity/properties/podAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution/items",
+								                "type": "object",
+				                        "additionalItems": true
+                            }
+                        },
+                        "preferredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/podAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution",
+                            "type": "array",
+                            "title": "Pod Affinity PreferredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.podAffinity.preferredDuringSchedulingIgnoredDuringExecution",
+                            "default": [],
+                            "additionalItems": true,
+                            "items": {
+                                "$id": "#/properties/affinity/properties/podAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution/items",
+								                "type": "object",
+				                        "additionalItems": true
+                            }
+                        }
+                    }
+                },
+                "podAntiAffinity": {
+                    "$id": "#/properties/affinity/properties/podAntiAffinity",
+                    "type": "object",
+                    "title": "Pod Anti-Affinity",
+                    "default": {},
+                    "required": [
+                        "requiredDuringSchedulingIgnoredDuringExecution",
+                        "preferredDuringSchedulingIgnoredDuringExecution"
+                    ],
+                    "properties": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/podAntiAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution",
+                            "type": "array",
+                            "title": "Pod Anti-Affinity RequiredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution",
+                            "default": [],
+                            "additionalItems": true,
+                            "items": {
+                                "$id": "#/properties/affinity/properties/podAntiAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution/items",
+								                "type": "object",
+				                        "additionalItems": true
+                            }
+                        },
+                        "preferredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/podAntiAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution",
+                            "type": "array",
+                            "title": "Pod Anti-Affinity PreferredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution",
+                            "default": [],
+                            "additionalItems": true,
+                            "items": {
+                                "$id": "#/properties/affinity/properties/podAntiAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution/items",
+								                "type": "object",
+				                        "additionalItems": true
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "persistentVolumeCCM": {
+            "$id": "#/properties/persistentVolumeCCM",
+            "type": "object",
+            "title": "Persistent Volume CCM Configuration",
+            "default": {},
+            "required": [
+                "storageClassName",
+                "size",
+                "enabled",
+                "useDynamicProvisioning",
+                "accessMode"
+            ],
+            "properties": {
+                "claimName": {
+                    "$id": "#/properties/persistentVolumeCCM/properties/claimName",
+                    "type": [ "string", "null" ],
+                    "title": "Persistent Volume Claim",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "storageClassName": {
+                    "$id": "#/properties/persistentVolumeCCM/properties/storageClassName",
+                    "type": "string",
+                    "title": "Storage Class Name",
+                    "description": "Specify the Storage Class name for dynamic provisioning for data persistence.",
+                    "default": "manual",
+                    "examples": [
+                        "manual"
+                    ]
+                },
+                "size": {
+                    "$id": "#/properties/persistentVolumeCCM/properties/size",
+                    "type": "string",
+                    "title": "Persistent Volume Claim Size",
+                    "default": "2Gi",
+                    "examples": [
+                        "2Gi"
+                    ]
+                },
+                "enabled": {
+                    "$id": "#/properties/persistentVolumeCCM/properties/enabled",
+                    "type": "boolean",
+                    "title": "persistent volume for all volumes except user input",
+                    "default": true,
+                    "examples": [
+                        true
+                    ]
+                },
+                "useDynamicProvisioning": {
+                    "$id": "#/properties/persistentVolumeCCM/properties/useDynamicProvisioning",
+                    "type": "boolean",
+                    "title": "To use storage classes to dynamically create PV",
+                    "default": false,
+                    "examples": [
+                        false,
+						            true
+                    ]
+                },
+                "accessMode": {
+                    "$id": "#/properties/persistentVolumeCCM/properties/accessMode",
+                    "type": "string",
+                    "title": "Access Mode for Persistent Volume Claim",
+                    "default": "ReadWriteOnce",
+                    "examples": [
+                        "ReadWriteOnce"
+                    ]
+                },
+                "selector": {
+                    "$id": "#/properties/persistentVolumeCCM/properties/selector",
+                    "type": "object",
+                    "title": "Labels for Selector",
+                    "default": {},
+                    "properties": {
+                        "label": {
+                            "$id": "#/properties/persistentVolumeCCM/properties/selector/properties/label",
+                            "type": [ "string", "null" ],
+                            "title": "Label Name",
+                            "default": "",
+                            "examples": [
+                                ""
+                            ]
+                        },
+                        "value": {
+                            "$id": "#/properties/persistentVolumeCCM/properties/selector/properties/value",
+                            "type": [ "string", "null" ],
+                            "title": "Label Value",
+                            "default": "",
+                            "examples": [
+                                ""
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "persistentVolumeUserInputs": {
+            "$id": "#/properties/persistentVolumeUserInputs",
+            "type": "object",
+            "title": "Persistent Volume Claim Configuration For User Inputs",
+            "default": {},
+            "required": [
+                "storageClassName",
+                "size",
+                "enabled",
+                "accessMode"
+            ],
+            "properties": {
+                "claimName": {
+                    "$id": "#/properties/persistentVolumeUserInputs/properties/claimName",
+                    "type": [ "string", "null" ],
+                    "title": "Persistent Volume Claim",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "storageClassName": {
+                    "$id": "#/properties/persistentVolumeUserInputs/properties/storageClassName",
+                    "type": "string",
+                    "title": "Storage Class Name",
+                    "default": "manual",
+                    "examples": [
+                        "manual"
+                    ]
+                },
+                "size": {
+                    "$id": "#/properties/persistentVolumeUserInputs/properties/size",
+                    "type": "string",
+                    "title": "Persistent Volume Claim Size",
+                    "default": "2Gi",
+                    "examples": [
+                        "2Gi"
+                    ]
+                },
+                "enabled": {
+                    "$id": "#/properties/persistentVolumeUserInputs/properties/enabled",
+                    "type": "boolean",
+                    "title": "Persistent Volume For User Input",
+                    "default": true,
+                    "examples": [
+                        true,
+						false
+                    ]
+                },
+                "accessMode": {
+                    "$id": "#/properties/persistentVolumeUserInputs/properties/accessMode",
+                    "type": "string",
+                    "title": "Access Mode for Persistent Volume Claim",
+                    "default": "ReadWriteOnce",
+                    "examples": [
+                        "ReadWriteOnce"
+                    ]
+                },
+                "selector": {
+                    "$id": "#/properties/persistentVolumeUserInputs/properties/selector",
+                    "type": "object",
+                    "title": "Labels for Selector",
+                    "default": {},
+                    "properties": {
+                        "label": {
+                            "$id": "#/properties/persistentVolumeUserInputs/properties/selector/properties/label",
+                            "type": [ "string", "null" ],
+                            "title": "Label Name",
+                            "default": "",
+                            "examples": [
+                                ""
+                            ]
+                        },
+                        "value": {
+                            "$id": "#/properties/persistentVolumeUserInputs/properties/selector/properties/value",
+                            "type": [ "string", "null" ],
+                            "title": "Label Value",
+                            "default": "",
+                            "examples": [
+                                ""
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "livenessProbe": {
+            "$id": "#/properties/livenessProbe",
+            "type": "object",
+            "title": "Liveness Probe Configuration",
+            "required": [
+                "initialDelaySeconds",
+                "timeoutSeconds",
+                "periodSeconds"
+            ],
+            "properties": {
+                "initialDelaySeconds": {
+                    "$id": "#/properties/livenessProbe/properties/initialDelaySeconds",
+                    "type": "integer",
+                    "title": "Initial Delay",
+                    "description": "Specify the initial delay in starting liveness probe in seconds.",
+                    "default": 170,
+                    "examples": [
+                        170
+                    ]
+                },
+                "timeoutSeconds": {
+                    "$id": "#/properties/livenessProbe/properties/timeoutSeconds",
+                    "type": "integer",
+                    "title": "timeout Seconds",
+                    "description": "Specify the probe timeout in secondss.",
+                    "default": 30,
+                    "examples": [
+                        30
+                    ]
+                },
+                "periodSeconds": {
+                    "$id": "#/properties/livenessProbe/properties/periodSeconds",
+                    "type": "integer",
+                    "title": "Period",
+                    "description": "Specify the time period between two probes in seconds.",
+                    "default": 60,
+                    "examples": [
+                        60
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "readinessProbe": {
+            "$id": "#/properties/readinessProbe",
+            "type": "object",
+            "title": "Readiness Probe Configuration",
+            "properties": {
+                "initialDelaySeconds": {
+                    "$id": "#/properties/readinessProbe/properties/initialDelaySeconds",
+                    "type": "integer",
+                    "title": "Initial Delay",
+                    "description": "Specify the initial delay in starting readiness probe in seconds.",
+                    "default": 160,
+                    "examples": [
+                        160
+                    ]
+                },
+                "timeoutSeconds": {
+                    "$id": "#/properties/readinessProbe/properties/timeoutSeconds",
+                    "type": "integer",
+                    "title": "Timeout",
+                    "description": "Specify the probe timeout in seconds",
+                    "default": 5,
+                    "examples": [
+                        5
+                    ]
+                },
+                "periodSeconds": {
+                    "$id": "#/properties/readinessProbe/properties/periodSeconds",
+                    "type": "integer",
+                    "title": "Time Period",
+                    "description": "Specify the time period between two probes in seconds.",
+                    "default": 60,
+                    "examples": [
+                        60
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "secret": {
+            "$id": "#/properties/secret",
+            "type": "object",
+            "title": "Secret Configuration",
+            "required": [
+                "secretName",
+                "certsSecretName"
+            ],
+            "properties": {
+                "secretName": {
+                    "$id": "#/properties/secret/properties/secretName",
+                    "type": [ "string", "null" ],
+                    "title": "Secret name for Secure Parameters",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "certsSecretName": {
+                    "$id": "#/properties/secret/properties/certsSecretName",
+                    "type": [ "string", "null" ],
+                    "title": "Secret name for certificates",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "dashboard": {
+            "$id": "#/properties/dashboard",
+            "type": "object",
+            "title": "Dashboard Monitoring",
+            "default": {},
+            "required": [
+                "enabled"
+            ],
+            "properties": {
+                "enabled": {
+                    "$id": "#/properties/dashboard/properties/enabled",
+                    "type": "boolean",
+                    "title": "Enable/Disable Dashboard",
+                    "default": false,
+                    "examples": [
+                        true,
+						            false
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "route": {
+            "$id": "#/properties/route",
+            "type": "object",
+            "title": "Openshift Route Configuration",
+            "required": [
+                "enabled"
+            ],
+            "properties": {
+                "enabled": {
+                    "$id": "#/properties/route/properties/enabled",
+                    "type": "boolean",
+                    "title": "Enable/Disable Openshift Route",
+                    "default": false,
+                    "examples": [
+                        true,
+						            false
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "autoscaling": {
+            "$id": "#/properties/autoscaling",
+            "type": "object",
+            "title": "Autoscaling",
+            "default": {},
+            "required": [
+                "enabled",
+                "minReplicas",
+                "maxReplicas",
+                "targetCPUUtilizationPercentage"
+            ],
+            "properties": {
+                "enabled": {
+                    "$id": "#/properties/autoscaling/properties/enabled",
+                    "type": "boolean",
+                    "title": "Autoscaling is enabled or not",
+                    "default": false,
+                    "examples": [
+                        false,
+						            true
+                    ]
+                },
+                "minReplicas": {
+                    "$id": "#/properties/autoscaling/properties/minReplicas",
+                    "type": "integer",
+                    "title": "Minimum Pod Replica",
+                    "default": 1,
+                    "examples": [
+                        1
+                    ]
+                },
+                "maxReplicas": {
+                    "$id": "#/properties/autoscaling/properties/maxReplicas",
+                    "type": "integer",
+                    "title": "Maximum  Pod Replica",
+                    "default": 2,
+                    "examples": [
+                        2
+                    ]
+                },
+                "targetCPUUtilizationPercentage": {
+                    "$id": "#/properties/autoscaling/properties/targetCPUUtilizationPercentage",
+                    "type": "integer",
+                    "title": "Traget CPU Utilization",
+                    "default": 60,
+                    "examples": [
+                        60
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "arch": {
+            "$id": "#/properties/arch",
+            "type": "string",
+            "title": "Worker Node Architecture",
+            "default": "amd64",
+            "examples": [
+                "amd64"
+            ]
+        },
+        "license": {
+            "$id": "#/properties/license",
+            "type": "boolean",
+            "title": "License Acceptance",
+            "description": "Please accept license after reading it at https://www-40.ibm.com/software/sla/sladb.nsf (L/N: L-KNAN-C6VGE3)",
+            "default": true,
+            "examples": [
+                true,
+				        false
+            ]
+        },
+        "licenseType": {
+            "$id": "#/properties/licenseType",
+            "type": "string",
+            "title": "License edition for IBM Certified Container Software for SCCM",
+            "description": "Please provide the license type edition as either prod or non-prod for production or non-production respectively.",
+            "default": "prod",
+            "examples": [
+                "non-prod",
+				        "prod"
+            ]
+        }
+    },
+    "additionalProperties": true
+}

@@ -1,0 +1,20 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: ibm-sccm-pv-input
+  labels:
+    app.kubernetes.io/name: ibm-sccm-pv-input
+    app.kubernetes.io/instance: ibm-sccm
+    app.kubernetes.io/managed-by: ibm-sccm-service
+    helm.sh/chart: ibm-sccm
+    release: ibm-sccm
+    author: ccuserinputs
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi # Storage capacity for this PV
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 111.22.333.444
+    path: /docker_volume/inputpv # create user_inputs folder inside inputpv folder  and copy required db jar

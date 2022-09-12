@@ -1,0 +1,33 @@
+{{- if and .Values.persistentVolumeUserInputs.enabled  (not .Values.persistentVolumeUserInputs.claimName) -}}
+
+{{- include "sch.config.init" (list . "ibm-sccm.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list .) }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+
+# Sample for creating a volume claim.
+# It will be used while creating the container.
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{  $fullName  }}-pvc-ui
+  labels:
+    app.kubernetes.io/name: {{ $appName }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "ibm-sccm.chart" . }}
+    release: {{ .Release.Name }}
+spec:
+  # Disable dynamic provisioning
+  storageClassName: {{ default "" .Values.persistentVolumeUserInputs.storageClassName | quote }}
+  accessModes:
+    - {{  .Values.persistentVolumeUserInputs.accessMode  }}
+  resources:
+    requests:
+      storage: {{  .Values.persistentVolumeUserInputs.size | quote  }}
+  {{- if and .Values.persistentVolumeUserInputs.selector.label }}
+  selector: 
+    matchLabels:
+      {{ .Values.persistentVolumeUserInputs.selector.label }}: {{  .Values.persistentVolumeUserInputs.selector.value  }}
+  {{- end }}
+{{- end }}

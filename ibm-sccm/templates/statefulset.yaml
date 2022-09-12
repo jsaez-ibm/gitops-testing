@@ -1,0 +1,222 @@
+{{- include "sch.config.init" (list . "ibm-sccm.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list .) }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+{{ $saName := include "sch.names.fullCompName" (list . "serviceaccount") }}
+
+#Deployment
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{  include "sch.names.statefulSetName" (list .) }}
+  labels:
+    app.kubernetes.io/name: {{  $appName  }}
+    app.kubernetes.io/instance: {{  .Release.Name  }}
+    app.kubernetes.io/managed-by: {{  .Release.Service  }}
+    helm.sh/chart: {{  include "ibm-sccm.chart" .  }}
+    release: {{  .Release.Name  }}
+    author: IBM
+spec:
+  replicas: {{  .Values.replicaCount  }}
+  selector: 
+    matchLabels:
+      app.kubernetes.io/name: {{  $appName  }}
+      app.kubernetes.io/instance: {{  .Release.Name  }}
+      author: IBM
+  serviceName: {{ $fullName }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{  $appName  }}
+        app.kubernetes.io/instance: {{  .Release.Name  }}
+        app.kubernetes.io/managed-by: {{  .Release.Service  }}
+        helm.sh/chart: {{  include "ibm-sccm.chart" .  }}
+        release: {{  .Release.Name  }}
+        author: IBM
+      
+      annotations:
+      {{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering "" "" nil) | indent 8 }}
+  
+    spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ $saName }}
+      {{- else }}
+      serviceAccountName: {{ .Values.serviceAccount.name | default "default" }}
+      {{- end }}
+      hostNetwork: false
+      hostPID: false
+      hostIPC: false
+      securityContext:
+      {{ include "sch.security.securityContext" (list . .sch.chart.podSecurityContext) | indent 8 }}
+      affinity:
+      {{- include "ibm-sccm.nodeAffinity" (list . .Values.affinity.nodeAffinity) | indent 8 }}
+      {{- include "ibm-sccm.podAffinity" (list . .Values.affinity.podAffinity) | indent 8 }}
+      {{- include "ibm-sccm.podAntiAffinity" (list . .Values.affinity.podAntiAffinity) | indent 8 }}
+      initContainers:
+      - name: {{ $fullName }}-init-secret
+        {{- if .Values.image.digest.enabled }}
+        image: "{{  .Values.image.repository  }}@{{ .Values.image.digest.value }}"
+        {{- else }}
+        image: "{{  .Values.image.repository  }}:{{ .Values.image.tag  }}"
+        {{- end }}
+        imagePullPolicy: {{  .Values.image.pullPolicy  }}
+        env:
+        - name: ENGINE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: APP_USER_UID
+          value: "{{  .Values.ccArgs.appUserUID  }}"
+        - name: APP_USER_GID
+          value: "{{  .Values.ccArgs.appUserGID  }}"
+        - name: DEBUG_SCRIPT
+          value: "{{ .Values.ccArgs.DEBUG_SCRIPT | default "false" }}"
+        command: ["/app/maintenance.sh", "populateSecret"]
+        volumeMounts:
+        - mountPath: /app/CC/conf
+          name: cc-volume
+          subPathExpr: $(ENGINE_NAME)/conf
+        - mountPath: /app/secret_files
+          name: scc-secret
+        resources:
+          limits:
+{{ toYaml .Values.initResources.limits | indent 12 }}
+          requests:
+{{ toYaml .Values.initResources.requests | indent 12 }}
+        securityContext:
+{{ include "sch.security.securityContext" (list . .sch.chart.containerSecurityContext) | indent 12 }}
+      containers:
+        - name: {{ $fullName }}
+          {{- if .Values.image.digest.enabled }}
+          image: "{{  .Values.image.repository  }}@{{ .Values.image.digest.value }}"
+          {{- else }}
+          image: "{{  .Values.image.repository  }}:{{ .Values.image.tag  }}"
+          {{- end }}
+          imagePullPolicy: {{  .Values.image.pullPolicy  }}
+          #ports:
+           # - containerPort: 58080
+           # - containerPort: 58081
+           # - containerPort: 58082
+           # - containerPort: 58083
+           # - containerPort: 58085
+          env:
+            - name: LICENSE
+              value: {{ .Values.license | quote }}
+            - name: ENGINE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: APP_USER_UID
+              value: {{ .Values.ccArgs.appUserUID | quote }}
+            - name: APP_USER_GID
+              value: {{ .Values.ccArgs.appUserGID | quote }}
+            - name: CC_APP_INTERVAL
+              value: {{ .Values.ccArgs.ccInterval | quote }}
+            - name: NPROC_LIMIT
+              value: {{ .Values.ccArgs.nprocLimit | quote }}
+            - name: NOFILE_LIMIT
+              value: {{ .Values.ccArgs.nofileLimit | quote }}
+            - name: DEBUG_SCRIPT
+              value: "{{ .Values.ccArgs.DEBUG_SCRIPT | default "false"  }}"
+          volumeMounts:
+            - mountPath: /app/CC/log/
+              name: cc-volume
+              subPathExpr: $(ENGINE_NAME)/logs
+            - mountPath: /app/CC/conf/
+              name: cc-volume
+              subPathExpr: $(ENGINE_NAME)/conf
+            - mountPath: /app/CC/conf-exported
+              name: cc-volume
+              subPathExpr: $(ENGINE_NAME)/conf-exported
+            - mountPath: /app/CC/web/ccbase
+              name: cc-volume
+              subPathExpr: $(ENGINE_NAME)/ccbase
+            - mountPath: /app/CC/packages/
+              name: cc-volume
+              subPathExpr: packages
+            - mountPath: /app/CC/web/ccbase/reports
+              name: cc-volume
+              subPathExpr: reports
+            - mountPath: /app/CC/user_inputs/
+              name: cc-volume-user-inputs
+              subPathExpr: user_inputs
+            - mountPath: /app/cc_config_file
+              name: scc-param
+              subPath: scc_param_file
+            - mountPath: /app/certs_secret_files
+              name: sccm-certs-secret         
+          securityContext:
+          {{ include "sch.security.securityContext" (list . .sch.chart.containerSecurityContext) | indent 12 }}
+          startupProbe:
+            tcpSocket:
+              port: 
+              {{- if .Values.service.webConsoleSecure.port }}
+               {{ .Values.service.webConsoleSecure.port }}
+              {{- else }}
+                {{ .Values.service.webConsole.port }}
+              {{- end }} 
+            failureThreshold: 60
+            periodSeconds: 10
+            
+          # Set liveness probe to determine if Control Center is running
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: 10
+            #tcpSocket:
+            #  port: {{ .Values.service.swingConsole.port }}
+            exec:              
+              command: 
+              - bash
+              - -c
+              {{- if .Values.service.webConsoleSecure.port }}
+              - monitorService.sh {{ .Values.service.webConsoleSecure.port }}
+              {{- else }}
+              - monitorService.sh {{ .Values.service.webConsole.port }}
+              {{- end }} 
+          # Set readiness probe to determine if Control Center is running
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: 10
+            #tcpSocket:              
+            #  port: {{ .Values.service.swingConsole.port }}
+            exec:              
+              command: 
+              - bash
+              - -c
+              {{- if .Values.service.webConsoleSecure.port }}
+              - monitorService.sh {{ .Values.service.webConsoleSecure.port }}
+              {{- else }}
+              - monitorService.sh {{ .Values.service.webConsole.port }}
+              {{- end }} 
+          resources:
+            limits:
+{{ toYaml .Values.resources.limits | indent 14 }}
+            requests:
+{{ toYaml .Values.resources.requests | indent 14 }}
+      volumes:
+      - name: cc-volume
+        persistentVolumeClaim:
+          {{- if .Values.persistentVolumeCCM.claimName}}
+          claimName: {{ .Values.persistentVolumeCCM.claimName}}
+          {{- else }}
+          claimName: {{  $fullName  }}-pvc-ccm
+          {{- end }}
+      - name: cc-volume-user-inputs
+        persistentVolumeClaim:
+          {{- if .Values.persistentVolumeUserInputs.claimName}}
+          claimName: {{ .Values.persistentVolumeUserInputs.claimName}}
+          {{- else }}
+          claimName: {{  $fullName  }}-pvc-ui
+          {{- end }}
+      - name: scc-param
+        configMap:
+          name: {{ $fullName }}
+      - name: scc-secret
+        secret:
+          secretName: {{  .Values.secret.secretName  }}
+      - name: sccm-certs-secret
+        secret:
+          secretName: {{  .Values.secret.certsSecretName  }}

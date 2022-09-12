@@ -1,0 +1,19 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: ibm-sccm-pv
+  labels:
+    app.kubernetes.io/name: ibm-sccm-pv
+    app.kubernetes.io/instance: ibm-sccm
+    app.kubernetes.io/managed-by: ibm-sccm-service
+    helm.sh/chart: ibm-sccm
+    release: ibm-sccm
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 20Gi # Storage capacity for this PV
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 111.22.333.444
+    path: /docker_volume/mountpv

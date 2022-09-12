@@ -1,0 +1,67 @@
+{{- include "sch.config.init" (list . "ibm-sccm.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list .) }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+{{ $saName := include "sch.names.fullCompName" (list . "serviceaccount") }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app.kubernetes.io/name: {{ $appName }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "ibm-sccm.chart" . }}
+    release: {{ .Release.Name }}
+    author: IBM
+  {{- if .Values.service.annotations }}
+  annotations:
+  {{ toYaml .Values.service.annotations | indent 4 }}
+  {{- end }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{  $appName  }}
+    app.kubernetes.io/instance: {{  .Release.Name  }}
+    release: {{ .Release.Name }}
+    author: IBM
+  type: {{ .Values.service.type }}
+  {{- if .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  {{- end }}
+  {{- if .Values.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{ toYaml .Values.service.loadBalancerSourceRanges | indent 4 }}
+  {{- end }}
+
+  {{- if .Values.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
+  {{- end }} 
+  ports:
+  - name: {{ .Values.service.swingConsole.name }}
+    port: {{ .Values.service.swingConsole.port }}
+    targetPort: {{ .Values.service.swingConsole.port }}
+    protocol: {{ .Values.service.swingConsole.protocol }}
+  - name: {{ .Values.service.webConsole.name }}
+    port: {{ .Values.service.webConsole.port }}
+    targetPort: {{ .Values.service.webConsole.port }}
+    protocol: {{ .Values.service.webConsole.protocol }}
+  {{- if .Values.service.webConsoleSecure }}
+  - name: {{ .Values.service.webConsoleSecure.name }}
+    port: {{ .Values.service.webConsoleSecure.port }}
+    targetPort: {{ .Values.service.webConsoleSecure.port }}
+    protocol: {{ .Values.service.webConsoleSecure.protocol }}
+  {{- end }}
+  {{- if .Values.service.swingConsoleSecure }}
+  - name: {{ .Values.service.swingConsoleSecure.name }}
+    port: {{ .Values.service.swingConsoleSecure.port }}
+    targetPort: {{ .Values.service.swingConsoleSecure.port }}
+    protocol: {{ .Values.service.swingConsoleSecure.protocol }}
+  {{- end }}
+  {{- if .Values.service.sessionAffinity }}
+  sessionAffinity: {{ .Values.service.sessionAffinity }}
+  {{- end }}
+  {{- if .Values.service.externalIP }}
+  externalIPs:
+    - {{ .Values.service.externalIP }}
+  {{- end }}
+

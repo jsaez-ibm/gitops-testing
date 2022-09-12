@@ -1,0 +1,251 @@
+# Default values for mychart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1 
+
+image:
+  repository: "cp.icr.io/cp/ibm-scc/ibmscc"
+  tag: "6.2.1.0_ifix07_2022-07-31"
+  imageSecrets: ""
+  digest:
+    enabled: true
+    value: sha256:df5d16b1b0c56210026ec9c9627fe3a1a7e289471eb47b0df1ffc02ee3c4e5d3
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+service:
+  type: LoadBalancer
+  loadBalancerIP: ""
+  
+  # Load Balancer sources
+  # https://kubernetes.io/docs/concepts/services-networking/
+  # E.g -
+  # loadBalancerSourceRanges:
+  # - 10.10.10.0/24
+  loadBalancerSourceRanges: []
+  
+  externalTrafficPolicy: "Local"
+  sessionAffinity: "ClientIP"
+  swingConsole:
+    name: "swing-console"
+    port: 58080
+    protocol: "TCP"
+  webConsole:
+    name: "web-console"
+    port: 58082
+    protocol: "TCP"
+  swingConsoleSecure:
+    name: "swing-console-secure"
+    port: 58081
+    protocol: "TCP"
+  webConsoleSecure:
+    name: "web-console-secure"
+    port: 58083
+    protocol: "TCP"
+  externalIP: ""
+  # Specify this to set annotations 
+  annotations: {}
+    #service.kubernetes.io/ibm-load-balancer-cloud-provider-ip-type: public
+    #service.kubernetes.io/ibm-load-balancer-cloud-provider-name: cm
+    #service.kubernetes.io/ibm-load-balancer-cloud-provider-zone: main01  
+
+ccArgs:
+  appUserUID: "1010"
+  appUserGID: "1010"
+  ccInterval: "2h"
+  nprocLimit: "1048576"
+  nofileLimit: "1048576"
+  DEBUG_SCRIPT: "false"
+
+  #Control center database information
+  productEntitilement: "CCD,CCM"
+  dbType: "MSSQL"
+  dbHost: ""
+  dbPort: "1433"
+  dbUser: "ibm"
+  dbName: "CC_HELM"
+  dbLoc: "none"
+  dbInit: "false"
+  dbPartition: "false"
+  dbDrivers: "/app/CC/user_inputs/mssql-jdbc-7.4.1.jre8.jar"
+  mssqlGlobal: "false"
+ 
+  weblistenAddress: ""
+  webHost: ""
+  autoStopJavaWebAppServer: "true"
+  eventRepositoryAuth: "false"
+  
+  #Email related details
+  emailHostname: "localhost"
+  emailPort: "25"
+  emailUser: ""
+  emailRespond: "noone@anywhere"
+  ccAdminEmailAddress: "noone@anywhere"
+  
+  oracleRacOrScan: ""
+  
+  #JMS related details
+  jmsEnable: ""
+  jmsType: ""
+  jmsHost: ""
+  jmsPort: ""
+  jmsQueueManager: ""
+  jmsChannel: ""
+  jmsSubject: ""
+  jmsTopic: ""
+  jmsEmbedBroker: ""
+  jmsDataDirectory: ""
+  jmsTimeToLive: ""
+  jmsRetries: ""
+  jmsRetryWait: ""
+  jmsBrokerName: ""
+  
+  #Secure parameters
+  dbSSL: ""
+    
+  # Keystore and truststore configuration
+  keyStore: "/app/CC/user_inputs/CCenter.keystore"
+  trustStore: "/app/CC/user_inputs/CCenter.truststore"
+  keyAlias: "ccalias120"
+  adminEmailAddress: "admin@test.com"
+
+  #Seas Parameters
+  packagePath: "../packages"
+  seasPrimaryAddress: ""
+  seasPrimaryPort: ""
+  seasAlternativeAddress: ""
+  seasAlternativePort: ""
+  seasSecureConnection: "N"
+  seasProfileName: "test"
+  seasPersistentConnection: "N"
+  seasSecureProtocol: ""
+
+resources: 
+  limits:
+    cpu: 3000m
+    memory: 8Gi
+    ephemeral-storage: "4Gi"
+  requests:
+    cpu: 1500m
+    memory: 4Gi
+    ephemeral-storage: "2Gi"
+
+initResources:
+  limits:
+    cpu: 500m
+    memory: 2Gi
+  requests:
+    cpu: 250m
+    memory: 1Gi
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+
+#persistence Volume
+persistentVolumeCCM:
+  claimName: ""
+  storageClassName: "manual"
+  size: 20Gi
+  enabled: true
+  useDynamicProvisioning: false
+  accessMode: "ReadWriteOnce"
+  selector:
+    label: ""
+    value: ""
+
+persistentVolumeUserInputs:
+  claimName: ""
+  storageClassName: "manual"
+  size: 2Gi
+  enabled: true
+  accessMode: "ReadWriteOnce"
+  selector:
+    label: ""
+    value: ""
+    
+# Manage Storage permission 
+storageSecurity:
+  # fsGroup -  Used for controlling access to block storage such as Ceph RBD, iSCSI, and some Cloud storage.
+  fsGroup: ""
+  # supplementalGroups - supplemental Groups IDs are used for controlling access to shared storage like NFS and GlusterFS
+  # Replace supplementalGroup Id with NFS User's groupId if the root squash is enabled on NFS server otherwise volume access will fail
+  supplementalGroups: [65534]
+  
+# liveness and Probeness
+livenessProbe:
+  initialDelaySeconds: 175
+  timeoutSeconds: 45
+  periodSeconds: 120
+
+readinessProbe:
+  initialDelaySeconds: 175
+  timeoutSeconds: 15
+  periodSeconds: 120
+  
+secret:
+  secretName:  ""
+  certsSecretName: ""
+
+dashboard:
+  enabled: true
+
+route:
+  enabled: true
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 60
+
+arch: "amd64"
+
+# Change license to true to indicate that you have read and agree to license agreements
+# Refer: https://www-40.ibm.com/software/sla/sladb.nsf (L/N: L-KNAN-C6VGE3)
+license: false
+
+# Specify the license edition as per license agreement. Valid value is prod or non-prod for Production and 
+# Non-production respectively. Remember that this parameter is crucial for IBM Licensing and Metering Service
+licenseType: non-prod
+
+# Set network policy
+# https://kubernetes.io/docs/concepts/services-networking/network-policies/
+networkPolicy:
+  # apply policy type
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  # apply ingress rule. Default allow all ingress traffic.
+  ingress:
+  - from:
+    ports:
+    - protocol: TCP
+      port: 58080
+    - protocol: TCP
+      port: 58081
+    - protocol: TCP
+      port: 58082
+    - protocol: TCP
+      port: 58083
+      
+  # apply egress rule. Default allow all egress traffic 
+  egress: 
+  - {}

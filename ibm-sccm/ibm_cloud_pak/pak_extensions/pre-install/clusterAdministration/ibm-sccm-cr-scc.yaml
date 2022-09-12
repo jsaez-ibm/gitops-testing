@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: "ibm-sccm-scc"
+  labels:
+    app: "ibm-sccm-scc"
+rules:
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - ibm-sccm-scc
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
