@@ -1,10 +1,5 @@
 apiVersion: v2
 appVersion: V6.2.1.0-iFix07 - build May 18 2022 15:19
-dependencies:
-- alias: sch
-  name: ibm-sch
-  repository: '@sch'
-  version: ^1.2.18
 description: 'A Helm chart to deploy IBM Sterling Control Center Monitor - Configuration
   Manager on a containerized platform. Documentation For additional details regarding
   install parameters check CM Helm Chart documentation at https://www.ibm.com/docs/en/control-center/6.2.1.0?topic=sterling-control-center-monitor-621
