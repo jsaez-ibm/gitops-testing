@@ -4,11 +4,6 @@ entries:
   - apiVersion: v2
     appVersion: V6.2.1.0
     created: "2022-01-07T00:33:58.391084295Z"
-    dependencies:
-    - alias: sch
-      name: ibm-sch
-      repository: '@sch'
-      version: ^1.2.18
     description: 'A Helm chart to deploy IBM Sterling Control Center Monitor - Configuration
       Manager on a containerized platform. Documentation For additional details regarding
       install parameters check CM Helm Chart documentation at https://www.ibm.com/support/knowledgecenter/en/SS4Q96_6.2.0/ccm_6.2_welcome.html
@@ -32,4 +27,4 @@ entries:
     name: ibm-sccm
     urls:
     - https://jsaez-ibm.github.io/gitops-testing/ibm-sccm
-    version: 1.0.10
+    version: 1.0.10.1
