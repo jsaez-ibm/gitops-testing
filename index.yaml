@@ -31,5 +31,5 @@ entries:
     - name: IBM
     name: ibm-sccm
     urls:
-    - https://jsaez-ibm.github.io/gitops-testing/ibm-sccm-1.0.12.tgz
-    version: 1.0.12
+    - https://jsaez-ibm.github.io/gitops-testing/ibm-sccm-1.0.13.tgz
+    version: 1.0.13
