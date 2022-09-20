@@ -25,4 +25,4 @@ kubeVersion: '>=1.19'
 maintainers:
 - name: IBM
 name: ibm-sccm
-version: 1.0.14
+version: 1.0.10
