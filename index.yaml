@@ -32,4 +32,4 @@ entries:
     name: ibm-sccm
     urls:
     - https://jsaez-ibm.github.io/gitops-testing/ibm-sccm-1.0.11.tgz
-    version: 1.0.11
+    version: 1.0.12
